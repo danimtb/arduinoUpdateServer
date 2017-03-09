@@ -1,63 +1,63 @@
-from bottle import run, get, static_file
+from bottle import run, get, abort, static_file
 import json as json
 import os
 import sys
 
+
 ##################### sonoff-danimtb FW and binary files ######################
 
-sonoffdanimtb_last_version = "0.0.6"
-sonoffdanimtb_sonoff_bin = "/firmwares/sonoff-danimtb_v0.0.6_sonoff.bin"
-sonoffdanimtb_sonoffs20_bin = "/firmwares/sonoff-danimtb_v0.0.6_sonoffs20.bin"
-sonoffdanimtb_sonofftouch_bin = "/firmwares/sonoff-danimtb_v0.0.6_sonofftouch.bin"
-sonoffdanimtb_sonofftouchesp01_bin = "/firmwares/sonoff-danimtb_v0.0.6_sonofftouchesp01.bin"
+sonoffdanimtb_last_version = "0.0.8"
+sonoffdanimtb_path = "/firmwares/sonoff-danimtb/"
 
-sonoff_data = {}
-sonoff_data["version"] = sonoffdanimtb_last_version
-sonoff_data["fw"] = sonoffdanimtb_sonoff_bin
-sonoff_data["spiffs"] = ""
+def sonoffdanimtb_pathGenerator(device):
+	sonoffdanimtb = {}
+	version = sonoffdanimtb_last_version
+	firmware_path = sonoffdanimtb_path + sonoffdanimtb_last_version + "/" + device + "/firmware.bin"
+	spiffs_path = sonoffdanimtb_path + sonoffdanimtb_last_version + "/" + device + "/spiffs.bin"
 
-sonoffs20_data = {}
-sonoffs20_data["version"] = sonoffdanimtb_last_version
-sonoffs20_data["fw"] = sonoffdanimtb_sonoffs20_bin
+	if not (os.path.exists(os.path.realpath(os.getcwd() + firmware_path))):
+		print os.path.realpath(os.getcwd() + firmware_path)
+		firmware_path = ""
 
-sonofftouch_data = {}
-sonofftouch_data["version"] = sonoffdanimtb_last_version
-sonofftouch_data["fw"] = sonoffdanimtb_sonofftouch_bin
+	if not (os.path.exists(os.path.realpath(os.getcwd() + spiffs_path))):
+		spiffs_path = ""
 
-sonofftouchesp01_data = {}
-sonofftouchesp01_data["version"] = sonoffdanimtb_last_version
-sonofftouchesp01_data["fw"] = sonoffdanimtb_sonofftouchesp01_bin
+	if firmware_path and spiffs_path:
+		sonoffdanimtb["version"] = version
+		sonoffdanimtb["fw"] = firmware_path
+		sonoffdanimtb["spiffs"] = spiffs_path
 
+	return sonoffdanimtb
 
 ###############################################################################
+
 
 @get('/status')
 def getStatus():
 	return {'OK'}
 
-@get('/firmwares/<fw_bin>')
-def getFirmwareSonoffDanimtbBin(fw_bin):
-	firmware_path = 'firmwares' + fw_bin
-	return static_file(fw_bin, root=os.getcwd()+'/firmwares/', download=fw_bin)
+@get('/firmwares/<fw_name>/<fw_version>/<device>/<file_bin>')
+def getFirmwareSonoffDanimtbBin(fw_name, fw_version, device, file_bin):
+	return static_file(file_bin, root=os.path.realpath(os.getcwd() + '/firmwares/' + fw_name + "/" + fw_version + "/" + device + "/"), download=file_bin)
 
-@get('/<fw>/<version>/<type>')
-def getUpdate(fw, version, type):
+@get('/<fw>/<version>/<device>')
+def getUpdate(fw, version, device):
 	if (fw == 'sonoff-danimtb'):
 		if(version < sonoffdanimtb_last_version):
-			if(type == 'sonoff'):
-				return json.dumps(sonoff_data)
-			elif(type == 'sonoff-s20'):
-				return json.dumps(sonoffs20_data)
-			elif(type == 'sonoff-touch'):
-				return json.dumps(sonofftouch_data)
-			elif(type == 'sonoff-touch-esp01'):
-				return json.dumps(sonofftouchesp01_data)
+			if(device == 'sonoff'):
+				return json.dumps(sonoffdanimtb_pathGenerator(device))
+			elif(device == 'sonoff-s20'):
+				return json.dumps(sonoffdanimtb_pathGenerator(device))
+			elif(device == 'sonoff-touch'):
+				return json.dumps(sonoffdanimtb_pathGenerator(device))
+			elif(device == 'sonoff-touch-esp01'):
+				return json.dumps(sonoffdanimtb_pathGenerator(device))
 			else:
-				return {'Device not supported'}
+				abort(404, "Device not found.")
 		else:
 			return {'{}'}
 	else:
-		return {'{}'}
+		abort(404, "Firmware not found.")
 
 
 run(host='0.0.0.0', port=sys.argv[1])
