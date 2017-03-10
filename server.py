@@ -6,7 +6,7 @@ import sys
 
 ##################### sonoff-danimtb FW and binary files ######################
 
-sonoffdanimtb_last_version = "0.0.8"
+sonoffdanimtb_last_version = "0.0.9"
 sonoffdanimtb_path = "/firmwares/sonoff-danimtb/"
 
 def sonoffdanimtb_pathGenerator(device):
