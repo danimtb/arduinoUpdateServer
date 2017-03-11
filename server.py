@@ -1,7 +1,10 @@
-from bottle import run, get, abort, static_file
+from bottle import Bottle, run, get, abort, static_file, request, response
 import json as json
 import os
 import sys
+from datetime import datetime
+from functools import wraps
+import logging
 
 
 ##################### sonoff-danimtb FW and binary files ######################
@@ -32,15 +35,53 @@ def sonoffdanimtb_pathGenerator(device):
 ###############################################################################
 
 
-@get('/status')
+#### LOGGER
+
+logger = logging.getLogger('access')
+
+# set up the logger
+logger.setLevel(logging.INFO)
+file_handler = logging.FileHandler('access.log')
+formatter = logging.Formatter('%(msg)s')
+file_handler.setLevel(logging.DEBUG)
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
+def log_to_logger(fn):
+    '''
+    Wrap a Bottle request so that a log line is emitted after it's handled.
+    (This decorator can be extended to take the desired logger as a param.)
+    '''
+    @wraps(fn)
+    def _log_to_logger(*args, **kwargs):
+        request_time = datetime.now()
+        actual_response = fn(*args, **kwargs)
+        # modify this to log exactly what you need:
+        logger.info('%s %s %s %s %s' % (request.remote_addr,
+                                        request_time,
+                                        request.method,
+                                        request.url,
+                                        response.status))
+        return actual_response
+    return _log_to_logger
+
+
+########
+
+server = Bottle()
+
+server.install(log_to_logger)
+
+
+@server.get('/status')
 def getStatus():
 	return {'OK'}
 
-@get('/firmwares/<fw_name>/<fw_version>/<device>/<file_bin>')
+@server.get('/firmwares/<fw_name>/<fw_version>/<device>/<file_bin>')
 def getFirmwareSonoffDanimtbBin(fw_name, fw_version, device, file_bin):
 	return static_file(file_bin, root=os.path.realpath(os.getcwd() + '/firmwares/' + fw_name + "/" + fw_version + "/" + device + "/"), download=file_bin)
 
-@get('/<fw>/<version>/<device>')
+@server.get('/<fw>/<version>/<device>')
 def getUpdate(fw, version, device):
 	if (fw == 'sonoff-danimtb'):
 		if(version < sonoffdanimtb_last_version):
@@ -60,4 +101,4 @@ def getUpdate(fw, version, device):
 		abort(404, "Firmware not found.")
 
 
-run(host='0.0.0.0', port=sys.argv[1])
+server.run(host='0.0.0.0', port=sys.argv[1])
