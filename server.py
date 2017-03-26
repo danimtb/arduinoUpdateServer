@@ -28,7 +28,7 @@ def sonoffdanimtb_pathGenerator(device):
 
 	if firmware_path and spiffs_path:
 		sonoffdanimtb["version"] = version
-		sonoffdanimtb["fw"] = firmware_path
+		sonoffdanimtb["firmware"] = firmware_path
 		sonoffdanimtb["spiffs"] = spiffs_path
 
 	return sonoffdanimtb
