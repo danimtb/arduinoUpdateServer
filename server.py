@@ -93,6 +93,8 @@ def getUpdate(fw, version, device):
 				return json.dumps(sonoffdanimtb_pathGenerator(device))
 			elif(device == 'sonoff-touch-esp01'):
 				return json.dumps(sonoffdanimtb_pathGenerator(device))
+			elif(device == 'sonoff-pow'):
+				return json.dumps(sonoffdanimtb_pathGenerator(device))
 			else:
 				abort(404, "Device not found.")
 		else:
