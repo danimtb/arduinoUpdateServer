@@ -5,6 +5,7 @@ import sys
 from datetime import datetime
 from functools import wraps
 import logging
+from paste import httpserver
 
 
 ##################### sonoff-danimtb FW and binary files ######################
@@ -102,5 +103,4 @@ def getUpdate(fw, version, device):
 	else:
 		abort(404, "Firmware not found.")
 
-
-server.run(host='0.0.0.0', port=sys.argv[1])
+httpserver.serve(server, host='0.0.0.0', port=sys.argv[1])
