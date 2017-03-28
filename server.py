@@ -10,7 +10,7 @@ from paste import httpserver
 
 ##################### sonoff-danimtb FW and binary files ######################
 
-sonoffdanimtb_last_version = "0.1.0"
+sonoffdanimtb_last_version = "0.0.9"
 sonoffdanimtb_path = "/firmwares/sonoff-danimtb/"
 
 def sonoffdanimtb_pathGenerator(device):
