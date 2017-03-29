@@ -8,34 +8,6 @@ import logging
 from paste import httpserver
 
 
-##################### sonoff-danimtb FW and binary files ######################
-
-sonoffdanimtb_last_version = "0.0.9"
-sonoffdanimtb_path = "/firmwares/sonoff-danimtb/"
-
-def sonoffdanimtb_pathGenerator(device):
-	sonoffdanimtb = {}
-	version = sonoffdanimtb_last_version
-	firmware_path = sonoffdanimtb_path + sonoffdanimtb_last_version + "/" + device + "/firmware.bin"
-	spiffs_path = sonoffdanimtb_path + sonoffdanimtb_last_version + "/" + device + "/spiffs.bin"
-
-	if not (os.path.exists(os.path.realpath(os.getcwd() + firmware_path))):
-		print os.path.realpath(os.getcwd() + firmware_path)
-		firmware_path = ""
-
-	if not (os.path.exists(os.path.realpath(os.getcwd() + spiffs_path))):
-		spiffs_path = ""
-
-	if firmware_path and spiffs_path:
-		sonoffdanimtb["version"] = version
-		sonoffdanimtb["firmware"] = firmware_path
-		sonoffdanimtb["spiffs"] = spiffs_path
-
-	return sonoffdanimtb
-
-###############################################################################
-
-
 #### LOGGER
 
 logger = logging.getLogger('access')
@@ -69,6 +41,42 @@ def log_to_logger(fn):
 
 ########
 
+
+########## HELPERS
+
+def getFirmwareVersion(firmware):
+	firmwaresJson = open("firmwares.json")
+	firmwares = json.load(firmwaresJson)
+	return firmwares[firmware]["version"]
+
+
+def getFirmwareRelativePath(firmware):
+	firmwaresJson = open("firmwares.json")
+	firmwares = json.load(firmwaresJson)
+	return firmwares[firmware]["path"]
+
+
+def getFirmwareData(firmware, device):
+	firmwareData = {}
+	firmware_version = getFirmwareVersion(firmware)
+	firmware_path = getFirmwareRelativePath(firmware) + firmware_version + "/" + device + "/firmware.bin"
+	spiffs_path = getFirmwareRelativePath(firmware) + firmware_version + "/" + device + "/spiffs.bin"
+
+	if not (os.path.exists(os.path.realpath(os.getcwd() + firmware_path))):
+		firmware_path = ""
+
+	if not (os.path.exists(os.path.realpath(os.getcwd() + spiffs_path))):
+		spiffs_path = ""
+
+	if firmware_path and spiffs_path:
+		firmwareData["version"] = firmware_version
+		firmwareData["firmware"] = firmware_path
+		firmwareData["spiffs"] = spiffs_path
+
+	return firmwareData
+
+###############################################################################
+
 server = Bottle()
 
 server.install(log_to_logger)
@@ -79,23 +87,23 @@ def getStatus():
 	return {'OK'}
 
 @server.get('/firmwares/<fw_name>/<fw_version>/<device>/<file_bin>')
-def getFirmwareSonoffDanimtbBin(fw_name, fw_version, device, file_bin):
+def getFirmwarefirmwareDataBin(fw_name, fw_version, device, file_bin):
 	return static_file(file_bin, root=os.path.realpath(os.getcwd() + '/firmwares/' + fw_name + "/" + fw_version + "/" + device + "/"), download=file_bin)
 
 @server.get('/<fw>/<version>/<device>')
 def getUpdate(fw, version, device):
 	if (fw == 'sonoff-danimtb'):
-		if(version < sonoffdanimtb_last_version):
+		if(version < getFirmwareVersion('sonoff-danimtb')):
 			if(device == 'sonoff'):
-				return json.dumps(sonoffdanimtb_pathGenerator(device))
+				return json.dumps(getFirmwareData(fw, device))
 			elif(device == 'sonoff-s20'):
-				return json.dumps(sonoffdanimtb_pathGenerator(device))
+				return json.dumps(getFirmwareData(fw, device))
 			elif(device == 'sonoff-touch'):
-				return json.dumps(sonoffdanimtb_pathGenerator(device))
+				return json.dumps(getFirmwareData(fw, device))
 			elif(device == 'sonoff-touch-esp01'):
-				return json.dumps(sonoffdanimtb_pathGenerator(device))
+				return json.dumps(getFirmwareData(fw, device))
 			elif(device == 'sonoff-pow'):
-				return json.dumps(sonoffdanimtb_pathGenerator(device))
+				return json.dumps(getFirmwareData(fw, device))
 			else:
 				abort(404, "Device not found.")
 		else:

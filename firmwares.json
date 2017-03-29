@@ -1,0 +1,6 @@
+{
+  "sonoff-danimtb" : {
+    "version" : "0.9.0",
+    "path" : "/firmwares/sonoff-danimtb/"
+  }
+}
