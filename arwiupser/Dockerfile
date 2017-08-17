@@ -9,6 +9,6 @@ COPY requirements.txt /tmp/
 RUN pip3 install --requirement /tmp/requirements.txt
 
 # Copy data for add-on
-COPY server.py /
+COPY arwiupser.py /
 
-CMD ["python3", "server.py"]
+CMD ["python3", "arwiupser.py"]
