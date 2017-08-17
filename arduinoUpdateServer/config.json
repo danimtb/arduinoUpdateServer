@@ -14,8 +14,7 @@
     "firmwares": [
       {
         "name": null,
-        "version": null,
-        "devices": [null]
+        "version": null
       }
     ]
   },
@@ -23,8 +22,7 @@
     "firmwares": [
       {
         "name": "str",
-        "version": "str",
-        "devices": ["str"]
+        "version": "str"
       }
     ]
   }

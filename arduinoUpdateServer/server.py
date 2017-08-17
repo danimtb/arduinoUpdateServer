@@ -114,7 +114,7 @@ def getUpdate(fw_name, version, device):
 	for firmware in options["firmwares"]:
 		if (fw_name == firmware['name']):
 			if (needsUpdateVersion(version, getFirmwareLatestVersion(firmware['name']))):
-				if (device in firmware['devices']):
+				if (device in os.listdir(os.path.realpath(os.getcwd() + getFirmwareRelativePath(fw_name) + getFirmwareLatestVersion(firmware['name']) + "/"))):
 					return json.dumps(getFirmwareData(fw_name, device))
 				else:
 					abort(404, "Device not found.")
