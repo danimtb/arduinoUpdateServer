@@ -13,9 +13,9 @@
   "options": {
     "firmwares": [
       {
-        "name": "null",
-        "version": "null",
-        "devices": ["null"]
+        "name": null,
+        "version": null,
+        "devices": [null]
       }
     ]
   },
