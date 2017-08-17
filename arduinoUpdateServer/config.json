@@ -1,0 +1,32 @@
+{
+  "name": "arduinoUpdateServer",
+  "version": "0.0.0",
+  "slug": "arduinoUpdateServer",
+  "description": "Simple update server for arduino IoT devices",
+  "url": "https://github.com/danimtb/arduinoUpdateServer",
+  "startup": "services",
+  "boot": "auto",
+  "host_network": "True",
+  "ports": {
+    "8266/tcp": 8266
+  },
+  "map": ["share"],
+  "options": {
+    "firmwares": [
+      {
+        "name": "null",
+        "version": "null",
+        "devices": ["null"]
+      }
+    ]
+  },
+  "schema": {
+    "firmwares": [
+      {
+        "name": "str",
+        "version": "str",
+        "devices": ["str"]
+      }
+    ]
+  }
+}
