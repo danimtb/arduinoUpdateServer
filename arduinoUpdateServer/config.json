@@ -1,7 +1,7 @@
 {
-  "name": "arduinoUpdateServer",
+  "name": "arduinoupdateserver",
   "version": "0.0.0",
-  "slug": "arduinoUpdateServer",
+  "slug": "arduinoupdateserver",
   "description": "Simple update server for arduino IoT devices",
   "url": "https://github.com/danimtb/arduinoUpdateServer",
   "startup": "services",
