@@ -1,9 +1,9 @@
 {
-  "name": "arduinoupdateserver",
+  "name": "Arduino Wireless Update Server",
   "version": "0.0.0",
-  "slug": "arduinoupdateserver",
+  "slug": "arwiupser",
   "description": "Simple update server for arduino IoT devices",
-  "url": "https://github.com/danimtb/arduinoUpdateServer",
+  "url": "https://github.com/danimtb/arwiupser",
   "startup": "services",
   "boot": "auto",
   "ports": {
