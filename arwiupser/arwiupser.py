@@ -90,10 +90,10 @@ def getFirmwareData(firmware_name, firmware_version, device):
 
 	if checkFirmwareFileExists(firmware_name, firmware_version, device):
 		firmwareData["version"] = firmware_version
-		firmwareData["firmware"] = firmware_name + "/" + firmware_version + "/" + device + "/firmware.bin"
+		firmwareData["firmware"] = "/" + firmware_name + "/" + firmware_version + "/" + device + "/firmware.bin"
 
 	if checkSpiffsFileExists(firmware_name, firmware_version, device):
-		firmwareData["spiffs"] = firmware_name + "/" + firmware_version + "/" + device + "/spiffs.bin"
+		firmwareData["spiffs"] = "/" + firmware_name + "/" + firmware_version + "/" + device + "/spiffs.bin"
 
 	return firmwareData
 
