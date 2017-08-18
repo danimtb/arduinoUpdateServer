@@ -18,16 +18,15 @@ logger.setLevel(logging.INFO)
 stdoutHandler = logging.StreamHandler(sys.stdout)
 stdoutHandler.setLevel(logging.INFO)
 
-formatter = logging.Formatter('%(msg)s')
+formatter = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
 stdoutHandler.setFormatter(formatter)
 
 logger.addHandler(stdoutHandler)
 
-# Read options file
-logging.info("Reading options file: /data/options.json")
-
-with open(path + '/data/options.json', mode='r') as data_file:
-    options = json.load(data_file)
+# Warning Firmware Storage
+logging.warning("Ensure firmware files (firmware.bin & spiffs.bin) are placed following this directory structure: \"/share/arwiupser/<firmware_name>/<firmware_latest_version>/<device>\"")
+logging.warning("Remember spiffs.bin is not always necessary")
+logging.warning("Optional: You can set an invalid firmware, version or device with INVALID ending like so: <firmware_name>INVALID/<firmware_latest_version>INVALID/<device>INVALID")
 
 
 def log_to_logger(fn):
@@ -37,59 +36,64 @@ def log_to_logger(fn):
     '''
     @wraps(fn)
     def _log_to_logger(*args, **kwargs):
-        request_time = datetime.now()
         actual_response = fn(*args, **kwargs)
-        # modify this to log exactly what you need:
-        logger.info('%s %s %s %s %s' % (request.remote_addr,
-                                        request_time,
-                                        request.method,
-                                        request.url,
-                                        response.status))
+        logger.info('%s %s %s %s' % (request.remote_addr,
+                                     request.method,
+                                     request.url,
+                                     response.status))
         return actual_response
     return _log_to_logger
 
-def needsUpdateVersion(deviceVersion, latestVersion):
-	deviceVersion = deviceVersion.split('.')
-	latestVersion = latestVersion.split('.')
+def getFirmwareRelativePath(firmware_name):
+	return "/share/arwiupser/"
 
-	if (latestVersion[0] > deviceVersion[0]):
-		return True
-	
-	if (latestVersion[1] > deviceVersion[1]):
-		return True
+def getFirmwareNameRelativePath(firmware_name):
+	return getFirmwareRelativePath(firmware_name) + firmware_name + "/"
 
-	if (latestVersion[2] > deviceVersion[2]):
-		return True
+def getFimrwareRealPath(firmware_name):
+	return os.path.realpath(os.getcwd() + getFirmwareRelativePath(firmware_name))
 
-	return False
+def getFimrwareNameRealPath(firmware_name):
+	return os.path.realpath(os.getcwd() + getFirmwareNameRelativePath(firmware_name))
 
+def getFimrwareVersionRealPath(firmware_name, firmware_version):
+	return os.path.realpath(os.getcwd() + getFirmwareNameRelativePath(firmware_name) + firmware_version + "/")
 
-def getFirmwareLatestVersion(firmware_name):
-	for firmware in options["firmwares"]:
-		if (firmware["name"] == firmware_name):
-			return firmware["version"]
-		else:
-			return ""
+def getFimrwareDeviceRealPath(firmware_name, firmware_version, device):
+	return os.path.realpath(os.getcwd() + getFirmwareNameRelativePath(firmware_name) + firmware_version + "/" + device + "/")
 
-def getFirmwareRelativePath(firmware):
-	return "/share/arduinoUpdateServer/" + firmware + "/"
+def checkFirmwareList(firmware_name):
+	return (firmware_name in os.listdir(getFimrwareRealPath(firmware_name)))
 
-def getFirmwareData(firmware, device):
+def checkFirmware(firmware_name, firmware_version, device):
+	return os.path.exists(getFimrwareDeviceRealPath(firmware_name, firmware_version, device))
+
+def getFirmwareLatestVersion(firmware_name, device):
+	versions = os.listdir(getFimrwareNameRealPath(firmware_name))
+
+	versions.sort(reverse=True)
+
+	for version in versions:
+		if (checkFirmware(firmware_name, version, device) and not version.endswith("INVALID")):
+			return version
+
+	return ""
+
+def checkFirmwareFileExists(firmware_name, firmware_version, device):
+	return os.path.exists(getFimrwareDeviceRealPath(firmware_name, firmware_version, device) + "/firmware.bin")
+
+def checkSpiffsFileExists(firmware_name, firmware_version, device):
+	return os.path.exists(getFimrwareDeviceRealPath(firmware_name, firmware_version, device) + "/spiffs.bin")
+
+def getFirmwareData(firmware_name, firmware_version, device):
 	firmwareData = {}
-	firmware_version = getFirmwareLatestVersion(firmware)
-	firmware_path = getFirmwareRelativePath(firmware) + firmware_version + "/" + device + "/firmware.bin"
-	spiffs_path = getFirmwareRelativePath(firmware) + firmware_version + "/" + device + "/spiffs.bin"
 
-	if not (os.path.exists(os.path.realpath(os.getcwd() + firmware_path))):
-		firmware_path = ""
-
-	if not (os.path.exists(os.path.realpath(os.getcwd() + spiffs_path))):
-		spiffs_path = ""
-
-	if firmware_path:
+	if checkFirmwareFileExists(firmware_name, firmware_version, device):
 		firmwareData["version"] = firmware_version
-		firmwareData["firmware"] = firmware + "/" + firmware_version + "/" + device + "/firmware.bin"
-		firmwareData["spiffs"] = firmware + "/" + firmware_version + "/" + device + "/spiffs.bin"
+		firmwareData["firmware"] = firmware_name + "/" + firmware_version + "/" + device + "/firmware.bin"
+
+	if checkSpiffsFileExists(firmware_name, firmware_version, device):
+		firmwareData["spiffs"] = firmware_name + "/" + firmware_version + "/" + device + "/spiffs.bin"
 
 	return firmwareData
 
@@ -105,22 +109,28 @@ server.install(log_to_logger)
 def getStatus():
 	return {'OK'}
 
-@server.get('/firmwares/<fw_name>/<fw_version>/<device>/<file_bin>')
-def getFirmwarefirmwareDataBin(fw_name, fw_version, device, file_bin):
-	return static_file(file_bin, root=os.path.realpath(os.getcwd() + getFirmwareRelativePath(fw_name) + fw_version + "/" + device + "/"), download=file_bin)
+@server.get('/<firmware_name>/<firmware_version>/<device>')
+def getUpdate(firmware_name, firmware_version, device):
+	if (checkFirmwareList(firmware_name)):
 
-@server.get('/<fw_name>/<version>/<device>')
-def getUpdate(fw_name, version, device):
-	for firmware in options["firmwares"]:
-		if (fw_name == firmware['name']):
-			if (needsUpdateVersion(version, getFirmwareLatestVersion(firmware['name']))):
-				if (device in os.listdir(os.path.realpath(os.getcwd() + getFirmwareRelativePath(fw_name) + getFirmwareLatestVersion(firmware['name']) + "/"))):
-					return json.dumps(getFirmwareData(fw_name, device))
-				else:
-					abort(404, "Device not found.")
+		latest_version = getFirmwareLatestVersion(firmware_name, device)
+
+		if not latest_version:
+			abort(404, "Firmware latest version not found.")
+
+		elif (firmware_version < latest_version):
+
+			if (checkFirmwareFileExists(firmware_name, latest_version, device)):
+				return json.dumps(getFirmwareData(firmware_name, latest_version, device))
 			else:
-				return {'{}'}
+				abort(404, "Firmware files not found.")
 		else:
-			abort(404, "Firmware not found.")
+			return {'{}'}
+	else:
+		abort(404, "Firmware not found.")
+
+@server.get('/<firmware_name>/<firmware_version>/<device>/<file_bin>')
+def getFirmwarefirmwareDataBin(firmware_name, firmware_version, device, file_bin):
+	return static_file(file_bin, root=getFimrwareDeviceRealPath(firmware_name, firmware_version, device), download=file_bin)
 
 httpserver.serve(server, host='0.0.0.0', port=8266)

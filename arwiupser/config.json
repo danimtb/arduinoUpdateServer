@@ -1,6 +1,6 @@
 {
-  "name": "Arduino Wireless Update Server",
-  "version": "0.0.0",
+  "name": "arwiupser - Arduino Wireless Update Server",
+  "version": "0.0.1",
   "slug": "arwiupser",
   "description": "Simple update server for arduino IoT devices",
   "url": "https://github.com/danimtb/arwiupser",
@@ -10,20 +10,6 @@
     "8266/tcp": 8266
   },
   "map": ["share"],
-  "options": {
-    "firmwares": [
-      {
-        "name": null,
-        "version": null
-      }
-    ]
-  },
-  "schema": {
-    "firmwares": [
-      {
-        "name": "str",
-        "version": "str"
-      }
-    ]
-  }
+  "options": {},
+  "schema": {}
 }
