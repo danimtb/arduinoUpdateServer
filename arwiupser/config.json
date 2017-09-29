@@ -1,6 +1,6 @@
 {
   "name": "arwiupser - Arduino Wireless Update Server",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "slug": "arwiupser",
   "description": "Simple update server for arduino IoT devices",
   "url": "https://github.com/danimtb/arwiupser",
